@@ -1,0 +1,19 @@
+# 🔒 لا ترفع هذا الملف أبداً على GitHub!
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
