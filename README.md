@@ -1,134 +1,208 @@
-# 🧠 محلل المشاعر | Sentiment Analyzer
+#  Analyseur de Sentiments | Sentiment Analyzer
 
-تطبيق ويب لتحليل مشاعر النصوص بأكثر من 20 لغة باستخدام Claude AI و Flask.
+Application web permettant **d’analyser le sentiment de textes dans plus de 20 langues  **Flask**.
+
+Ce projet a été réalisé dans le cadre de l’apprentissage du **Traitement Automatique du Langage Naturel (NLP)** et de l’**Intelligence Artificielle appliquée à l’analyse de texte**.
 
 ---
 
-## 📁 هيكل المشروع
+#  Structure du projet
 
 ```
 sentiment_project/
-├── app.py                 ← السيرفر الخلفي (Flask)
-├── requirements.txt       ← المكتبات المطلوبة
-├── Procfile               ← للنشر على Render/Railway
-├── .env.example           ← نموذج إعدادات البيئة
-├── .gitignore             ← ملفات يجب استثناؤها من Git
-├── README.md              ← هذا الملف
+├── app.py                 ← Backend (serveur Flask)
+├── requirements.txt       ← Dépendances Python
+├── Procfile               ← Configuration pour le déploiement (Render / Railway)
+├── .env.example           ← Exemple de variables d’environnement
+├── .gitignore             ← Fichiers ignorés par Git
+├── README.md              ← Documentation du projet
 └── templates/
-    └── index.html         ← الواجهة الأمامية
+    └── index.html         ← Interface utilisateur
 ```
 
 ---
 
-## 🚀 التشغيل المحلي
+#  Installation et exécution locale
 
-### 1. استنسخ المشروع
-```bash
+## 1 Cloner le projet
+
+```
 git clone https://github.com/username/sentiment-analyzer.git
 cd sentiment-analyzer
 ```
 
-### 2. أنشئ بيئة افتراضية
-```bash
+---
+
+## 2 Créer un environnement virtuel
+
+```
 python -m venv venv
-source venv/bin/activate        # Mac/Linux
-venv\Scripts\activate           # Windows
 ```
 
-### 3. ثبّت المكتبات
-```bash
-pip install -r requirements.txt
+Activation :
+
+Mac / Linux
+
+```
+source venv/bin/activate
 ```
 
-### 4. أعدّ مفتاح API
-```bash
-cp .env.example .env
-```
-افتح ملف `.env` وأضف مفتاحك من https://console.anthropic.com/settings/keys:
-```
-ANTHROPIC_API_KEY=sk-ant-api03-XXXXXXXXXXXXXXXXXXXXXXXX
-```
+Windows
 
-### 5. شغّل السيرفر
-```bash
-python app.py
 ```
-افتح المتصفح على: **http://localhost:5000**
+venv\Scripts\activate
+```
 
 ---
 
-## ☁️ النشر على Render (مجاني)
+## 3 Installer les dépendances
 
-### 1. ارفع المشروع على GitHub
-```bash
+```
+pip install -r requirements.txt
+
+##  Lancer le serveur
+
+```
+python app.py
+```
+
+Puis ouvrir dans le navigateur :
+
+```
+http://localhost:5000
+```
+
+---
+
+# ☁️ Déploiement sur Render (gratuit)
+
+##  Publier sur GitHub
+
+```
 git init
 git add .
 git commit -m "Initial commit"
 git remote add origin https://github.com/username/sentiment-analyzer.git
 git push -u origin main
 ```
-> ⚠️ تأكد أن `.env` موجود في `.gitignore` ولم يُرفع!
 
-### 2. أنشئ حساباً على Render
-- اذهب إلى: https://render.com
-- سجّل دخول بحساب GitHub
+⚠️ Vérifiez que le fichier `.env` n’est pas publié sur GitHub.
 
-### 3. أنشئ Web Service جديد
-- New → Web Service
-- اختر repository المشروع
-- الإعدادات:
-  - **Build Command:** `pip install -r requirements.txt`
-  - **Start Command:** `gunicorn app:app`
-  - **Environment:** Python 3
+---
 
-### 4. أضف متغيرات البيئة
-في لوحة Render → Environment → Add:
+##  Créer un compte Render
+
+Accéder à :
+
+https://render.com
+
+Puis se connecter avec GitHub.
+
+---
+
+##  Créer un Web Service
+
+Configuration :
+
+| Paramètre     | Valeur                          |
+| ------------- | ------------------------------- |
+| Build Command | pip install -r requirements.txt |
+| Start Command | gunicorn app:app                |
+| Environment   | Python                          |
+
+---
+
+##  Ajouter les variables d’environnement
+
+Dans **Environment Variables** :
+
 ```
 ANTHROPIC_API_KEY = sk-ant-api03-XXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
-### 5. انشر! 🎉
-سيعطيك Render رابطاً مثل: `https://sentiment-analyzer.onrender.com`
-
 ---
 
-## 🔒 أمان API Key
+##  Déployer
 
-| ✅ آمن | ❌ خطر |
-|--------|--------|
-| متغير بيئة `.env` | في الكود مباشرة |
-| Environment Variables في Render | في ملف HTML |
-| Backend فقط يرى المفتاح | في Git/GitHub |
+Render générera une URL publique comme :
 
----
-
-## 🛠️ التقنيات المستخدمة
-
-- **Backend:** Python, Flask, Anthropic SDK
-- **Frontend:** HTML, CSS, JavaScript
-- **AI Model:** Claude claude-sonnet-4-20250514
-- **Deployment:** Render / Railway / Heroku
-- **NLP Task:** Multilingual Sentiment Analysis
-
----
-
-## 📊 API Endpoints
-
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/` | الصفحة الرئيسية |
-| POST | `/api/analyze` | تحليل النص |
-| GET | `/api/health` | فحص حالة السيرفر |
-
-### مثال على طلب API:
-```bash
-curl -X POST http://localhost:5000/api/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"text": "المنتج رائع!", "text_lang": "ar", "response_lang": "Arabic"}'
+```
+https://sentiment-analyzer.onrender.com
 ```
 
 ---
 
-## 👨‍💻 المطوّر
+#  Sécurité de la clé API
 
-مشروع تعليمي في إطار تعلم **Data Science & NLP**
+| Bonne pratique            | À éviter                               |
+| ------------------------- | -------------------------------------- |
+| Utiliser `.env`           | Mettre la clé directement dans le code |
+| Variables d’environnement | Stocker la clé dans HTML               |
+| Backend sécurisé          | Publier la clé sur GitHub              |
+
+---
+
+#  Technologies utilisées
+
+Backend
+
+* Python
+* Flask
+* Anthropic SDK
+
+Frontend
+
+* HTML
+* CSS
+* JavaScript
+
+Intelligence artificielle
+
+* Claude AI (Modèle : claude-sonnet-4)
+
+Déploiement
+
+* Render
+* Railway
+* Heroku
+
+Domaine
+
+* Natural Language Processing (NLP)
+* Analyse de sentiments multilingue
+
+---
+
+# API Endpoints
+
+| Méthode | Route        | Description             |
+| ------- | ------------ | ----------------------- |
+| GET     | /            | Page principale         |
+| POST    | /api/analyze | Analyse du sentiment    |
+| GET     | /api/health  | Vérification du serveur |
+
+---
+
+## Exemple d’appel API
+
+```
+curl -X POST http://localhost:5000/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Le produit est excellent!", "text_lang": "fr", "response_lang": "French"}'
+```
+
+---
+
+ Développeur
+
+Projet réalisé dans le cadre de l’apprentissage de :
+
+* Data Science
+* Natural Language Processing (NLP)
+* Intelligence Artificielle
+
+Développé par :
+
+**Youness Mchaar**
+Étudiant en Génie Informatique & Data Science
+
