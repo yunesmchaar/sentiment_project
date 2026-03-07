@@ -1,257 +1,982 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="fr" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>محلل المشاعر | Sentiment Analyzer</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<title>SentimentAI — Analyseur de Sentiments</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#2a2a3d;--accent:#7c6af7;--accent2:#f76a8a;--accent3:#6af7c0;--text:#e8e8f0;--text-dim:#7a7a9a;--pos:#4ade80;--neg:#f87171;--neu:#facc15;}
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;min-height:100vh;overflow-x:hidden;}
-  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(124,106,247,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 80%,rgba(247,106,138,.08) 0%,transparent 60%);pointer-events:none;z-index:0;}
-  .container{max-width:900px;margin:0 auto;padding:36px 20px;position:relative;z-index:1;}
-  .ui-lang-bar{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;margin-bottom:26px;}
-  .ui-lang-bar button{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-family:'Cairo',sans-serif;transition:all .2s;}
-  .ui-lang-bar button.active{background:rgba(124,106,247,.15);border-color:var(--accent);color:var(--accent);}
-  .ui-lang-bar button:hover{border-color:var(--accent);color:var(--accent);}
-  header{text-align:center;margin-bottom:42px;}
-  .badge{display:inline-block;font-family:'Space Mono',monospace;font-size:11px;color:var(--accent);border:1px solid var(--accent);padding:4px 14px;border-radius:20px;letter-spacing:2px;margin-bottom:16px;}
-  h1{font-size:clamp(2rem,5vw,3.4rem);font-weight:900;line-height:1.1;}
-  h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-  .subtitle{color:var(--text-dim);margin-top:12px;font-size:1rem;}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 32px;margin-bottom:22px;}
-  .card-label{font-size:12px;font-family:'Space Mono',monospace;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-  .card-label::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;}
-  .text-lang-grid{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;}
-  .tlang-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);padding:5px 11px;border-radius:8px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:12px;transition:all .2s;}
-  .tlang-btn.active{background:rgba(124,106,247,.15);border-color:var(--accent);color:var(--accent);}
-  .tlang-btn:hover{border-color:var(--accent);color:var(--accent);}
-  textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Cairo',sans-serif;font-size:1rem;padding:16px;resize:vertical;min-height:140px;transition:border-color .3s;outline:none;direction:auto;}
-  textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,106,247,.15);}
-  textarea::placeholder{color:var(--text-dim);}
-  .examples{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
-  .example-chip{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .2s;font-family:'Cairo',sans-serif;}
-  .example-chip:hover{border-color:var(--accent3);color:var(--accent3);}
-  .analyze-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--accent),#9c6af7);border:none;border-radius:12px;color:white;font-family:'Cairo',sans-serif;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all .3s;margin-top:20px;}
-  .analyze-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 30px rgba(124,106,247,.4);}
-  .analyze-btn:disabled{opacity:.6;cursor:not-allowed;}
-  .loader{display:none;align-items:center;justify-content:center;gap:6px;padding:20px;}
-  .loader.active{display:flex;}
-  .dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:bounce .8s infinite;}
-  .dot:nth-child(2){animation-delay:.15s;background:var(--accent2);}
-  .dot:nth-child(3){animation-delay:.3s;background:var(--accent3);}
-  .result-card{display:none;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;}
-  .result-card.visible{display:block;}
-  .sentiment-main{display:flex;align-items:center;gap:20px;margin-bottom:26px;flex-wrap:wrap;}
-  .sentiment-emoji{font-size:4rem;}
-  .sentiment-info{flex:1;}
-  .sentiment-label{font-size:1.8rem;font-weight:900;margin-bottom:4px;}
-  .sentiment-label.positive{color:var(--pos);}
-  .sentiment-label.negative{color:var(--neg);}
-  .sentiment-label.neutral{color:var(--neu);}
-  .sentiment-label.mixed{color:var(--accent);}
-  .sentiment-sub{color:var(--text-dim);font-size:.9rem;}
-  .bar-wrap{background:var(--surface2);border-radius:4px;height:6px;margin:4px 0 12px;overflow:hidden;}
-  .bar-fill{height:100%;border-radius:4px;transition:width 1s cubic-bezier(.4,0,.2,1);}
-  .analysis-section{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:14px;}
-  .analysis-section h3{font-size:13px;font-family:'Space Mono',monospace;color:var(--accent);letter-spacing:1px;margin-bottom:10px;}
-  .analysis-section p{color:var(--text-dim);font-size:.95rem;line-height:1.7;}
-  .keywords{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-  .keyword{padding:4px 12px;border-radius:20px;font-size:13px;}
-  .keyword.pos{background:rgba(74,222,128,.1);color:var(--pos);border:1px solid rgba(74,222,128,.3);}
-  .keyword.neg{background:rgba(248,113,113,.1);color:var(--neg);border:1px solid rgba(248,113,113,.3);}
-  .keyword.neu{background:rgba(250,204,21,.1);color:var(--neu);border:1px solid rgba(250,204,21,.3);}
-  .history-section{margin-top:32px;}
-  .history-title{font-size:13px;font-family:'Space Mono',monospace;color:var(--text-dim);letter-spacing:2px;margin-bottom:14px;}
-  .history-list{display:flex;flex-direction:column;gap:10px;}
-  .history-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .2s;}
-  .history-item:hover{border-color:var(--accent);}
-  .history-emoji{font-size:1.4rem;}
-  .history-text{flex:1;font-size:.88rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .history-sentiment{font-size:12px;font-family:'Space Mono',monospace;white-space:nowrap;}
-  .history-sentiment.positive{color:var(--pos);}
-  .history-sentiment.negative{color:var(--neg);}
-  .history-sentiment.neutral{color:var(--neu);}
-  .history-sentiment.mixed{color:var(--accent);}
-  .error-msg{display:none;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--neg);padding:13px 18px;border-radius:12px;margin-top:14px;font-size:.9rem;}
-  .error-msg.visible{display:block;}
-  footer{text-align:center;margin-top:50px;color:var(--text-dim);font-size:12px;font-family:'Space Mono',monospace;}
-  footer span{color:var(--accent);}
-  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+:root {
+  --bg:       #07080f;
+  --bg2:      #0d0f1a;
+  --surface:  #111320;
+  --surface2: #181b2e;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --accent:   #6c63ff;
+  --accent2:  #ff6584;
+  --accent3:  #43e8b0;
+  --text:     #eef0f8;
+  --text-dim: #6b7096;
+  --text-mid: #a0a6c8;
+  --pos:      #3ddc84;
+  --neg:      #ff5f6d;
+  --neu:      #f5c542;
+  --mix:      #a78bfa;
+  --glow:     rgba(108,99,255,0.25);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── NOISE TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.6;
+}
+
+/* ── GRADIENT ORBS ── */
+.orb {
+  position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+  filter: blur(80px); opacity: 0.18;
+}
+.orb-1 { width: 500px; height: 500px; top: -150px; left: -150px; background: var(--accent); }
+.orb-2 { width: 400px; height: 400px; bottom: -100px; right: -100px; background: var(--accent2); opacity: 0.12; }
+.orb-3 { width: 300px; height: 300px; top: 40%; left: 60%; background: var(--accent3); opacity: 0.08; }
+
+/* ── LAYOUT ── */
+.container {
+  max-width: 860px; margin: 0 auto;
+  padding: 28px 20px 60px;
+  position: relative; z-index: 1;
+}
+
+/* ── UI LANGUAGE BAR ── */
+.ui-lang-bar {
+  display: flex; justify-content: flex-end; gap: 5px;
+  flex-wrap: wrap; margin-bottom: 32px;
+}
+.ui-lang-bar button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 4px 11px; border-radius: 6px;
+  cursor: pointer; font-size: 11.5px;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .2s; letter-spacing: 0.01em;
+  display: flex; align-items: center; gap: 4px;
+}
+.ui-lang-bar button.active {
+  background: rgba(108,99,255,.12);
+  border-color: var(--accent); color: var(--accent);
+}
+.ui-lang-bar button:hover { border-color: var(--border2); color: var(--text-mid); }
+
+/* ── HEADER ── */
+header { text-align: center; margin-bottom: 44px; }
+
+.logo-mark {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 16px; border-radius: 30px;
+  background: rgba(108,99,255,0.08);
+  border: 1px solid rgba(108,99,255,0.2);
+  margin-bottom: 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10.5px; letter-spacing: 3px;
+  color: var(--accent); text-transform: uppercase;
+  animation: fadeUp 0.6s ease both;
+}
+.logo-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: pulse-dot 2s infinite;
+}
+
+h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+  font-weight: 800; line-height: 1.08; letter-spacing: -0.02em;
+  animation: fadeUp 0.7s ease both; animation-delay: 0.05s;
+}
+h1 .plain { color: var(--text-mid); font-weight: 400; }
+h1 .grad {
+  background: linear-gradient(120deg, var(--accent) 0%, #a78bfa 50%, var(--accent2) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.subtitle {
+  color: var(--text-dim); margin-top: 14px;
+  font-size: 0.95rem; line-height: 1.6;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  animation: fadeUp 0.8s ease both; animation-delay: 0.1s;
+}
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display: flex; justify-content: center; gap: 6px;
+  flex-wrap: wrap; margin-top: 20px;
+  animation: fadeUp 0.9s ease both; animation-delay: 0.15s;
+}
+.stat-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 13px; border-radius: 20px;
+  font-size: 11px; font-weight: 500;
+  border: 1px solid var(--border);
+  color: var(--text-dim); background: var(--surface2);
+  transition: all .2s;
+}
+.stat-chip:hover { border-color: var(--border2); color: var(--text-mid); }
+.stat-chip .dot { width: 5px; height: 5px; border-radius: 50%; }
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px; padding: 26px 28px;
+  margin-bottom: 16px;
+  animation: fadeUp 1s ease both; animation-delay: 0.2s;
+  position: relative; overflow: hidden;
+}
+.card::before {
+  content: ''; position: absolute; inset: 0; border-radius: 18px;
+  background: linear-gradient(135deg, rgba(108,99,255,0.03) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10.5px; letter-spacing: 2.5px;
+  color: var(--text-dim); text-transform: uppercase;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.section-label::before {
+  content: ''; width: 5px; height: 5px;
+  background: var(--accent); border-radius: 50%;
+  box-shadow: 0 0 6px var(--accent); flex-shrink: 0;
+}
+
+/* ── MODEL SELECTOR ── */
+.model-selector {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 20px;
+}
+.model-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px;
+  cursor: pointer; transition: all .25s;
+  text-align: left; color: var(--text-dim);
+  font-family: 'DM Sans', sans-serif;
+  position: relative; overflow: hidden;
+}
+.model-btn.active {
+  background: rgba(108,99,255,.1);
+  border-color: var(--accent); color: var(--text);
+}
+.model-btn.active::after {
+  content: '✓';
+  position: absolute; top: 8px; right: 10px;
+  font-size: 11px; color: var(--accent);
+}
+.model-btn:hover:not(.active) { border-color: var(--border2); color: var(--text-mid); }
+.model-btn-name { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+.model-btn-desc { font-size: 10.5px; opacity: 0.65; }
+.model-tag {
+  display: inline-block; font-size: 9px;
+  padding: 1px 6px; border-radius: 4px;
+  margin-top: 5px; font-family: 'DM Mono', monospace;
+}
+.tag-en { background: rgba(67,232,176,.12); color: var(--accent3); }
+.tag-multi { background: rgba(108,99,255,.12); color: var(--accent); }
+
+/* ── TEXT LANG GRID ── */
+.text-lang-grid { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.tlang-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); padding: 4px 10px; border-radius: 6px;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px; transition: all .18s;
+}
+.tlang-btn.active { background: rgba(108,99,255,.1); border-color: var(--accent); color: var(--accent); }
+.tlang-btn:hover:not(.active) { border-color: var(--border2); color: var(--text-mid); }
+
+/* ── TEXTAREA ── */
+.textarea-wrap { position: relative; }
+textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px; color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem; padding: 14px 16px;
+  resize: vertical; min-height: 130px;
+  transition: border-color .25s, box-shadow .25s;
+  outline: none; direction: auto; line-height: 1.6;
+}
+textarea:focus {
+  border-color: rgba(108,99,255,0.5);
+  box-shadow: 0 0 0 3px rgba(108,99,255,0.08), 0 0 20px rgba(108,99,255,0.05);
+}
+textarea::placeholder { color: var(--text-dim); }
+.char-count {
+  position: absolute; bottom: 10px; right: 12px;
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  color: var(--text-dim); pointer-events: none;
+}
+
+/* ── EXAMPLES ── */
+.examples { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; }
+.example-chip {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); padding: 4px 11px; border-radius: 20px;
+  font-size: 11.5px; cursor: pointer; transition: all .18s;
+  font-family: 'DM Sans', sans-serif;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.example-chip:hover { border-color: var(--accent3); color: var(--accent3); background: rgba(67,232,176,0.04); }
+
+/* ── ANALYZE BUTTON ── */
+.analyze-btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, var(--accent) 0%, #8b7fff 100%);
+  border: none; border-radius: 12px;
+  color: white; font-family: 'Syne', sans-serif;
+  font-size: 1rem; font-weight: 700; letter-spacing: 0.01em;
+  cursor: pointer; transition: all .3s; margin-top: 18px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  position: relative; overflow: hidden;
+}
+.analyze-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
+  opacity: 0; transition: opacity .3s;
+}
+.analyze-btn:hover:not(:disabled)::before { opacity: 1; }
+.analyze-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(108,99,255,0.35), 0 4px 12px rgba(108,99,255,0.2);
+}
+.analyze-btn:active:not(:disabled) { transform: translateY(0); }
+.analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── LOADER ── */
+.loader {
+  display: none; align-items: center; justify-content: center;
+  gap: 6px; padding: 22px;
+}
+.loader.active { display: flex; }
+.dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  animation: bounce .7s infinite ease-in-out;
+}
+.dot:nth-child(1) { background: var(--accent); }
+.dot:nth-child(2) { animation-delay: .12s; background: #a78bfa; }
+.dot:nth-child(3) { animation-delay: .24s; background: var(--accent2); }
+
+/* ── RESULT CARD ── */
+.result-card {
+  display: none; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 18px;
+  padding: 28px; animation: fadeUp 0.4s ease both;
+  position: relative; overflow: hidden;
+}
+.result-card.visible { display: block; }
+.result-card::before {
+  content: ''; position: absolute; inset: 0; border-radius: 18px;
+  background: linear-gradient(135deg, rgba(108,99,255,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* ── SENTIMENT MAIN ── */
+.sentiment-main {
+  display: flex; align-items: center;
+  gap: 18px; margin-bottom: 26px; flex-wrap: wrap;
+}
+.sentiment-icon {
+  width: 68px; height: 68px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 18px; flex-shrink: 0;
+  position: relative;
+}
+.sentiment-icon::after {
+  content: ''; position: absolute; inset: 0; border-radius: 18px;
+  opacity: 0.15; transition: opacity .3s;
+}
+.sentiment-icon.positive { background: rgba(61,220,132,0.1); color: var(--pos); }
+.sentiment-icon.positive::after { background: var(--pos); }
+.sentiment-icon.negative { background: rgba(255,95,109,0.1); color: var(--neg); }
+.sentiment-icon.negative::after { background: var(--neg); }
+.sentiment-icon.neutral  { background: rgba(245,197,66,0.1);  color: var(--neu); }
+.sentiment-icon.neutral::after  { background: var(--neu); }
+.sentiment-icon.mixed    { background: rgba(167,139,250,0.1); color: var(--mix); }
+.sentiment-icon.mixed::after    { background: var(--mix); }
+
+.sentiment-info { flex: 1; min-width: 0; }
+.sentiment-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 2rem; font-weight: 800;
+  letter-spacing: -0.02em; margin-bottom: 5px;
+}
+.sentiment-label.positive { color: var(--pos); }
+.sentiment-label.negative { color: var(--neg); }
+.sentiment-label.neutral  { color: var(--neu); }
+.sentiment-label.mixed    { color: var(--mix); }
+.sentiment-sub {
+  color: var(--text-dim); font-size: 0.88rem;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* Confidence badge */
+.confidence-badge {
+  margin-left: auto; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.confidence-ring {
+  width: 64px; height: 64px; position: relative;
+}
+.confidence-ring svg { transform: rotate(-90deg); }
+.confidence-ring .track { fill: none; stroke: var(--surface2); stroke-width: 4; }
+.confidence-ring .fill  { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(.4,0,.2,1); }
+.confidence-val {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+}
+.confidence-lbl { font-size: 10px; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+
+/* ── SCORE BARS ── */
+.scores-wrap { margin-bottom: 22px; }
+.bar-row {
+  display: grid; grid-template-columns: 90px 1fr 40px;
+  align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.bar-label {
+  font-size: 12px; display: flex; align-items: center; gap: 5px;
+  font-weight: 500;
+}
+.bar-track { background: var(--surface2); border-radius: 4px; height: 5px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 1.1s cubic-bezier(.4,0,.2,1); }
+.bar-val {
+  font-family: 'DM Mono', monospace; font-size: 11.5px;
+  color: var(--text-dim); text-align: right;
+}
+
+/* ── ANALYSIS SECTION ── */
+.analysis-section {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 18px; margin-bottom: 12px;
+  transition: border-color .2s;
+}
+.analysis-section:hover { border-color: var(--border2); }
+.analysis-section h3 {
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  color: var(--accent); letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 7px;
+}
+.analysis-section p {
+  color: var(--text-mid); font-size: 0.9rem; line-height: 1.75;
+}
+.keywords { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+.keyword {
+  padding: 3px 11px; border-radius: 20px;
+  font-size: 12.5px; font-weight: 500;
+}
+.keyword.pos { background: rgba(61,220,132,.08); color: var(--pos); border: 1px solid rgba(61,220,132,.25); }
+.keyword.neg { background: rgba(255,95,109,.08); color: var(--neg); border: 1px solid rgba(255,95,109,.25); }
+.keyword.neu { background: rgba(245,197,66,.08); color: var(--neu); border: 1px solid rgba(245,197,66,.25); }
+
+/* ── MODEL USED BADGE ── */
+.model-used-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 11px; border-radius: 20px;
+  font-size: 10.5px; font-family: 'DM Mono', monospace;
+  background: rgba(67,232,176,.06);
+  border: 1px solid rgba(67,232,176,.15);
+  color: var(--accent3); margin-bottom: 16px;
+}
+
+/* ── HISTORY ── */
+.history-section { margin-top: 28px; }
+.history-title {
+  font-size: 10.5px; font-family: 'DM Mono', monospace;
+  color: var(--text-dim); letter-spacing: 2.5px; text-transform: uppercase;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 7px;
+}
+.history-list { display: flex; flex-direction: column; gap: 8px; }
+.history-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 11px 16px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: all .2s;
+}
+.history-item:hover {
+  border-color: var(--border2);
+  background: var(--surface2); transform: translateX(3px);
+}
+.history-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.history-icon.positive { background: rgba(61,220,132,.1); color: var(--pos); }
+.history-icon.negative { background: rgba(255,95,109,.1); color: var(--neg); }
+.history-icon.neutral  { background: rgba(245,197,66,.1); color: var(--neu); }
+.history-icon.mixed    { background: rgba(167,139,250,.1); color: var(--mix); }
+.history-text {
+  flex: 1; font-size: 0.85rem; color: var(--text-dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.history-badge {
+  font-size: 10.5px; font-family: 'DM Mono', monospace;
+  padding: 3px 9px; border-radius: 20px; flex-shrink: 0;
+}
+.history-badge.positive { background: rgba(61,220,132,.08); color: var(--pos); }
+.history-badge.negative { background: rgba(255,95,109,.08); color: var(--neg); }
+.history-badge.neutral  { background: rgba(245,197,66,.08); color: var(--neu); }
+.history-badge.mixed    { background: rgba(167,139,250,.08); color: var(--mix); }
+
+/* ── ERROR ── */
+.error-msg {
+  display: none; background: rgba(255,95,109,.06);
+  border: 1px solid rgba(255,95,109,.2);
+  color: var(--neg); padding: 12px 16px;
+  border-radius: 10px; margin-top: 12px;
+  font-size: 0.88rem; gap: 8px;
+  align-items: flex-start;
+}
+.error-msg.visible { display: flex; }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center; margin-top: 48px;
+  color: var(--text-dim); font-size: 11.5px;
+  font-family: 'DM Mono', monospace;
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; flex-wrap: wrap; opacity: 0.7;
+}
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes bounce   { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes pulse-dot{ 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes shimmer  { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 560px) {
+  .model-selector { grid-template-columns: 1fr; }
+  .bar-row { grid-template-columns: 70px 1fr 36px; }
+  .confidence-badge { display: none; }
+}
 </style>
 </head>
 <body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
 <div class="container">
+
+  <!-- UI Language bar -->
   <div class="ui-lang-bar" id="uiLangBar">
-    <button onclick="setUiLang('ar',this)" class="active">🇩🇿 العربية</button>
-    <button onclick="setUiLang('en',this)">🇬🇧 English</button>
-    <button onclick="setUiLang('fr',this)">🇫🇷 Français</button>
-    <button onclick="setUiLang('es',this)">🇪🇸 Español</button>
-    <button onclick="setUiLang('de',this)">🇩🇪 Deutsch</button>
-    <button onclick="setUiLang('it',this)">🇮🇹 Italiano</button>
-    <button onclick="setUiLang('pt',this)">🇧🇷 Português</button>
-    <button onclick="setUiLang('ru',this)">🇷🇺 Русский</button>
-    <button onclick="setUiLang('zh',this)">🇨🇳 中文</button>
-    <button onclick="setUiLang('ja',this)">🇯🇵 日本語</button>
-    <button onclick="setUiLang('tr',this)">🇹🇷 Türkçe</button>
+    <button onclick="setUiLang('ar',this)">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      العربية
+    </button>
+    <button onclick="setUiLang('en',this)">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      English
+    </button>
+    <button onclick="setUiLang('fr',this)" class="active">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Français
+    </button>
+    <button onclick="setUiLang('es',this)">Español</button>
+    <button onclick="setUiLang('de',this)">Deutsch</button>
+    <button onclick="setUiLang('it',this)">Italiano</button>
+    <button onclick="setUiLang('pt',this)">Português</button>
+    <button onclick="setUiLang('ru',this)">Русский</button>
+    <button onclick="setUiLang('zh',this)">中文</button>
+    <button onclick="setUiLang('ja',this)">日本語</button>
+    <button onclick="setUiLang('tr',this)">Türkçe</button>
   </div>
 
+  <!-- Header -->
   <header>
-    <div class="badge" id="badge">NLP · تحليل المشاعر</div>
-    <h1 id="mainTitle">محلل <span id="titleSpan">المشاعر</span></h1>
-    <p class="subtitle" id="subtitle">حلل مشاعر أي نص بأكثر من 20 لغة باستخدام الذكاء الاصطناعي</p>
+    <div class="logo-mark">
+      <div class="logo-dot"></div>
+      <span id="badge">NLP · ANALYSE DE SENTIMENT</span>
+    </div>
+    <h1>
+      <span class="plain" id="h1plain">Analyseur de </span><span class="grad" id="h1grad">Sentiments</span>
+    </h1>
+    <p class="subtitle" id="subtitle">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Analysez le sentiment de n'importe quel texte en 20+ langues
+    </p>
+    <div class="stats-bar">
+      <span class="stat-chip"><span class="dot" style="background:var(--accent3)"></span>Hugging Face</span>
+      <span class="stat-chip"><span class="dot" style="background:var(--accent)"></span>2 Modèles NLP</span>
+      <span class="stat-chip"><span class="dot" style="background:var(--pos)"></span>20+ Langues</span>
+      <span class="stat-chip"><span class="dot" style="background:var(--neu)"></span>100% Gratuit</span>
+    </div>
   </header>
 
+  <!-- Input card -->
   <div class="card">
-    <div class="card-label" id="lblTextLang">لغة النص المُدخل</div>
-    <div class="text-lang-grid">
-      <button class="tlang-btn active" onclick="setTextLang('auto',this)">🌐 Auto</button>
-      <button class="tlang-btn" onclick="setTextLang('ar',this)">🇸🇦 العربية</button>
-      <button class="tlang-btn" onclick="setTextLang('en',this)">🇬🇧 English</button>
-      <button class="tlang-btn" onclick="setTextLang('fr',this)">🇫🇷 Français</button>
-      <button class="tlang-btn" onclick="setTextLang('es',this)">🇪🇸 Español</button>
-      <button class="tlang-btn" onclick="setTextLang('de',this)">🇩🇪 Deutsch</button>
-      <button class="tlang-btn" onclick="setTextLang('it',this)">🇮🇹 Italiano</button>
-      <button class="tlang-btn" onclick="setTextLang('pt',this)">🇧🇷 Português</button>
-      <button class="tlang-btn" onclick="setTextLang('ru',this)">🇷🇺 Русский</button>
-      <button class="tlang-btn" onclick="setTextLang('zh',this)">🇨🇳 中文</button>
-      <button class="tlang-btn" onclick="setTextLang('ja',this)">🇯🇵 日本語</button>
-      <button class="tlang-btn" onclick="setTextLang('ko',this)">🇰🇷 한국어</button>
-      <button class="tlang-btn" onclick="setTextLang('tr',this)">🇹🇷 Türkçe</button>
-      <button class="tlang-btn" onclick="setTextLang('nl',this)">🇳🇱 Nederlands</button>
-      <button class="tlang-btn" onclick="setTextLang('fa',this)">🇮🇷 فارسی</button>
-      <button class="tlang-btn" onclick="setTextLang('hi',this)">🇮🇳 हिंदी</button>
-      <button class="tlang-btn" onclick="setTextLang('he',this)">🇮🇱 עברית</button>
-      <button class="tlang-btn" onclick="setTextLang('uk',this)">🇺🇦 Українська</button>
-      <button class="tlang-btn" onclick="setTextLang('id',this)">🇮🇩 Indonesia</button>
-      <button class="tlang-btn" onclick="setTextLang('th',this)">🇹🇭 ภาษาไทย</button>
+
+    <!-- Model selector -->
+    <div class="section-label" id="lblModel">Modèle NLP</div>
+    <div class="model-selector">
+      <button class="model-btn" id="modelEnBtn" onclick="setModel('en',this)">
+        <div class="model-btn-name">DistilBERT</div>
+        <div class="model-btn-desc">Anglais uniquement · Ultra-rapide</div>
+        <span class="model-tag tag-en">EN only</span>
+      </button>
+      <button class="model-btn active" id="modelMultiBtn" onclick="setModel('multi',this)">
+        <div class="model-btn-name">Multilingual</div>
+        <div class="model-btn-desc">20+ langues · Arabe, Français…</div>
+        <span class="model-tag tag-multi">Multilingue</span>
+      </button>
     </div>
 
-    <div class="card-label" id="lblInputText">النص المراد تحليله</div>
-    <textarea id="inputText" rows="5" placeholder="اكتب أو الصق نصك هنا..."></textarea>
+    <div class="divider"></div>
 
-    <div class="card-label" style="margin-top:16px;" id="lblExamples">أمثلة سريعة</div>
+    <!-- Text language -->
+    <div class="section-label" id="lblTextLang">Langue du texte</div>
+    <div class="text-lang-grid">
+      <button class="tlang-btn active" onclick="setTextLang('auto',this)">🌐 Auto</button>
+      <button class="tlang-btn" onclick="setTextLang('ar',this)">العربية</button>
+      <button class="tlang-btn" onclick="setTextLang('en',this)">English</button>
+      <button class="tlang-btn" onclick="setTextLang('fr',this)">Français</button>
+      <button class="tlang-btn" onclick="setTextLang('es',this)">Español</button>
+      <button class="tlang-btn" onclick="setTextLang('de',this)">Deutsch</button>
+      <button class="tlang-btn" onclick="setTextLang('it',this)">Italiano</button>
+      <button class="tlang-btn" onclick="setTextLang('pt',this)">Português</button>
+      <button class="tlang-btn" onclick="setTextLang('ru',this)">Русский</button>
+      <button class="tlang-btn" onclick="setTextLang('zh',this)">中文</button>
+      <button class="tlang-btn" onclick="setTextLang('ja',this)">日本語</button>
+      <button class="tlang-btn" onclick="setTextLang('ko',this)">한국어</button>
+      <button class="tlang-btn" onclick="setTextLang('tr',this)">Türkçe</button>
+      <button class="tlang-btn" onclick="setTextLang('nl',this)">Nederlands</button>
+      <button class="tlang-btn" onclick="setTextLang('fa',this)">فارسی</button>
+      <button class="tlang-btn" onclick="setTextLang('hi',this)">हिंदी</button>
+      <button class="tlang-btn" onclick="setTextLang('he',this)">עברית</button>
+      <button class="tlang-btn" onclick="setTextLang('uk',this)">Українська</button>
+      <button class="tlang-btn" onclick="setTextLang('id',this)">Indonesia</button>
+      <button class="tlang-btn" onclick="setTextLang('th',this)">ภาษาไทย</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Text input -->
+    <div class="section-label" id="lblInputText">Texte à analyser</div>
+    <div class="textarea-wrap">
+      <textarea id="inputText" rows="5" placeholder="Saisissez ou collez votre texte ici…" oninput="updateCharCount(this)"></textarea>
+      <span class="char-count" id="charCount">0 / 512</span>
+    </div>
+
+    <!-- Examples -->
+    <div class="section-label" style="margin-top:16px;" id="lblExamples">Exemples rapides</div>
     <div class="examples" id="examplesContainer"></div>
 
     <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">
-      <span id="btnText">🔍 تحليل المشاعر</span>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <span id="btnText">Analyser le sentiment</span>
     </button>
-    <div class="error-msg" id="errorMsg"></div>
+    <div class="error-msg" id="errorMsg">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="errorText"></span>
+    </div>
   </div>
 
+  <!-- Loader -->
   <div class="loader" id="loader">
     <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-    <span id="loadingText" style="color:var(--text-dim);font-size:14px;margin-right:8px;">جاري التحليل...</span>
+    <span id="loadingText" style="color:var(--text-dim);font-size:13px;margin-left:6px;font-family:'DM Mono',monospace">Analyse en cours…</span>
   </div>
 
+  <!-- Result card -->
   <div class="result-card" id="resultCard">
-    <div class="card-label" id="lblResult">نتيجة التحليل</div>
+    <div class="section-label" id="lblResult">Résultat de l'analyse</div>
+
+    <div class="model-used-badge" id="modelUsedBadge">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>
+      <span id="modelUsedText">Multilingual</span>
+    </div>
+
     <div class="sentiment-main">
-      <div class="sentiment-emoji" id="resEmoji">😊</div>
+      <div class="sentiment-icon" id="resIcon"></div>
       <div class="sentiment-info">
         <div class="sentiment-label" id="resLabel"></div>
         <div class="sentiment-sub" id="resSub"></div>
       </div>
+      <!-- Confidence ring -->
+      <div class="confidence-badge">
+        <div class="confidence-ring">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle class="track" cx="32" cy="32" r="26"/>
+            <circle class="fill" id="confFill" cx="32" cy="32" r="26" stroke="var(--accent)"
+              stroke-dasharray="163.4" stroke-dashoffset="163.4"/>
+          </svg>
+          <div class="confidence-val" id="confVal">—</div>
+        </div>
+        <span class="confidence-lbl">confiance</span>
+      </div>
     </div>
-    <div style="margin-bottom:24px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span id="lblPos" style="font-size:13px;color:var(--pos)">إيجابي</span><span id="posVal" style="font-family:'Space Mono',monospace;font-size:13px;color:var(--pos)">0%</span></div>
-      <div class="bar-wrap"><div class="bar-fill" id="posBar" style="background:var(--pos);width:0%"></div></div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span id="lblNeg" style="font-size:13px;color:var(--neg)">سلبي</span><span id="negVal" style="font-family:'Space Mono',monospace;font-size:13px;color:var(--neg)">0%</span></div>
-      <div class="bar-wrap"><div class="bar-fill" id="negBar" style="background:var(--neg);width:0%"></div></div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span id="lblNeu" style="font-size:13px;color:var(--neu)">محايد</span><span id="neuVal" style="font-family:'Space Mono',monospace;font-size:13px;color:var(--neu)">0%</span></div>
-      <div class="bar-wrap"><div class="bar-fill" id="neuBar" style="background:var(--neu);width:0%"></div></div>
+
+    <!-- Score bars -->
+    <div class="scores-wrap">
+      <div class="bar-row">
+        <span class="bar-label" id="lblPos" style="color:var(--pos)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/></svg>
+          Positif
+        </span>
+        <div class="bar-track"><div class="bar-fill" id="posBar" style="background:var(--pos);width:0%"></div></div>
+        <span class="bar-val" id="posVal">0%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label" id="lblNeg" style="color:var(--neg)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/></svg>
+          Négatif
+        </span>
+        <div class="bar-track"><div class="bar-fill" id="negBar" style="background:var(--neg);width:0%"></div></div>
+        <span class="bar-val" id="negVal">0%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label" id="lblNeu" style="color:var(--neu)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/></svg>
+          Neutre
+        </span>
+        <div class="bar-track"><div class="bar-fill" id="neuBar" style="background:var(--neu);width:0%"></div></div>
+        <span class="bar-val" id="neuVal">0%</span>
+      </div>
     </div>
-    <div class="analysis-section"><h3 id="lblAnalysis">📊 التحليل التفصيلي</h3><p id="resAnalysis"></p></div>
-    <div class="analysis-section"><h3 id="lblKeywords">🔑 الكلمات المفتاحية</h3><div class="keywords" id="resKeywords"></div></div>
-    <div class="analysis-section"><h3 id="lblBusiness">💡 الاستخدام التجاري</h3><p id="resBusiness"></p></div>
+
+    <div class="analysis-section">
+      <h3 id="lblAnalysis">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        ANALYSE DÉTAILLÉE
+      </h3>
+      <p id="resAnalysis"></p>
+    </div>
+
+    <div class="analysis-section">
+      <h3 id="lblKeywords">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        MOTS-CLÉS
+      </h3>
+      <div class="keywords" id="resKeywords"></div>
+    </div>
+
+    <div class="analysis-section">
+      <h3 id="lblBusiness">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        USAGE COMMERCIAL
+      </h3>
+      <p id="resBusiness"></p>
+    </div>
   </div>
 
+  <!-- History -->
   <div class="history-section" id="historySection" style="display:none;">
-    <div class="history-title" id="historyTitle">// سجل التحليلات</div>
+    <div class="history-title" id="historyTitle">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+      HISTORIQUE DES ANALYSES
+    </div>
     <div class="history-list" id="historyList"></div>
   </div>
 
-  <footer><span id="footerBuilt">مبني بـ</span> <span>Claude AI + Flask</span> · <span id="footerSub">مشروع NLP</span></footer>
+  <footer>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    <span id="footerBuilt">Développé avec</span>
+    <span>Flask · Hugging Face</span>
+    <svg width="3" height="3" viewBox="0 0 4 4" fill="currentColor"><circle cx="2" cy="2" r="2"/></svg>
+    <span id="footerSub">Projet NLP</span>
+  </footer>
 </div>
 
 <script>
-const UI={ar:{dir:'rtl',lang:'ar',badge:'NLP · تحليل المشاعر',title:'محلل',titleSpan:'المشاعر',subtitle:'حلل مشاعر أي نص بأكثر من 20 لغة باستخدام الذكاء الاصطناعي',lblTextLang:'لغة النص المُدخل',lblInputText:'النص المراد تحليله',lblExamples:'أمثلة سريعة',placeholder:'اكتب أو الصق نصك هنا...',btnText:'🔍 تحليل المشاعر',loadingText:'جاري التحليل...',lblResult:'نتيجة التحليل',lblPos:'إيجابي',lblNeg:'سلبي',lblNeu:'محايد',lblAnalysis:'📊 التحليل التفصيلي',lblKeywords:'🔑 الكلمات المفتاحية',lblBusiness:'💡 الاستخدام التجاري',historyTitle:'// سجل التحليلات',footerBuilt:'مبني بـ',footerSub:'مشروع NLP',errEmpty:'⚠️ الرجاء إدخال نص للتحليل',errFail:'❌ حدث خطأ في السيرفر. تأكد من تشغيله.',responseLang:'Arabic',examples:[{text:'المنتج ممتاز والتوصيل سريع!',label:'إيجابي 😊'},{text:'خدمة سيئة لم تحل مشكلتي!',label:'سلبي 😠'},{text:'The product is okay, nothing special.',label:'محايد EN 😐'},{text:'Je suis très satisfait!',label:'إيجابي FR 🌟'},{text:'بعض الجوانب جيدة وأخرى سيئة',label:'مختلط 🤔'}]},en:{dir:'ltr',lang:'en',badge:'NLP · SENTIMENT ANALYSIS',title:'Sentiment',titleSpan:'Analyzer',subtitle:'Analyze the sentiment of any text in 20+ languages using AI',lblTextLang:'Input text language',lblInputText:'Text to analyze',lblExamples:'Quick examples',placeholder:'Type or paste your text here...',btnText:'🔍 Analyze Sentiment',loadingText:'Analyzing...',lblResult:'Analysis Result',lblPos:'Positive',lblNeg:'Negative',lblNeu:'Neutral',lblAnalysis:'📊 Detailed Analysis',lblKeywords:'🔑 Keywords',lblBusiness:'💡 Business Insight',historyTitle:'// ANALYSIS HISTORY',footerBuilt:'Built with',footerSub:'NLP Project',errEmpty:'⚠️ Please enter text to analyze.',errFail:'❌ Server error. Make sure the Flask server is running.',responseLang:'English',examples:[{text:'The product is amazing, fast delivery!',label:'Positive 😊'},{text:'Terrible service, never solved my issue!',label:'Negative 😠'},{text:'المنتج جيد لكن التوصيل بطيء',label:'Mixed AR 🤔'},{text:'Je suis très satisfait!',label:'Positive FR 🌟'},{text:'Das Produkt ist in Ordnung.',label:'Neutral DE 😐'}]},fr:{dir:'ltr',lang:'fr',badge:'NLP · ANALYSE DE SENTIMENT',title:'Analyseur de',titleSpan:'Sentiments',subtitle:"Analysez le sentiment de n'importe quel texte en 20+ langues",lblTextLang:'Langue du texte',lblInputText:'Texte à analyser',lblExamples:'Exemples',placeholder:'Tapez votre texte ici...',btnText:'🔍 Analyser',loadingText:'Analyse...',lblResult:'Résultat',lblPos:'Positif',lblNeg:'Négatif',lblNeu:'Neutre',lblAnalysis:'📊 Analyse',lblKeywords:'🔑 Mots-clés',lblBusiness:'💡 Usage commercial',historyTitle:'// HISTORIQUE',footerBuilt:'Créé avec',footerSub:'Projet NLP',errEmpty:'⚠️ Veuillez saisir un texte.',errFail:'❌ Erreur serveur. Vérifiez que Flask tourne.',responseLang:'French',examples:[{text:'Produit excellent, livraison rapide!',label:'Positif 😊'},{text:'Service horrible, problème non résolu!',label:'Négatif 😠'},{text:'The product is okay.',label:'Neutre EN 😐'},{text:'المنتج ممتاز!',label:'Positif AR 🌟'},{text:'Certains aspects bons, autres mauvais.',label:'Mixte 🤔'}]}};
+// ── SVG ICONS ──
+const ICONS = {
+  positive:`<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg>`,
+  negative:`<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg>`,
+  neutral: `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg>`,
+  mixed:   `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 1 4 1 4-1 4-1M8 13s1.5-1 4-1 4 1 4 1"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg>`,
+};
+const ICONS_SM = {
+  positive:`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg>`,
+  negative:`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg>`,
+  neutral: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/></svg>`,
+  mixed:   `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 1 4 1 4-1 4-1"/></svg>`,
+};
 
-let currentUiLang='ar',selectedTextLang='auto';
-const analysisHistory=[];
+// ── TRANSLATIONS ──
+const UI = {
+  ar:{dir:'rtl',lang:'ar',badge:'NLP · تحليل المشاعر',h1plain:'محلل ',h1grad:'المشاعر',subtitle:'حلل مشاعر أي نص بأكثر من 20 لغة',lblModel:'نموذج الذكاء الاصطناعي',lblTextLang:'لغة النص',lblInputText:'النص للتحليل',lblExamples:'أمثلة',placeholder:'اكتب نصك هنا…',btnText:'تحليل المشاعر',loadingText:'جاري التحليل…',lblResult:'نتيجة التحليل',lblPos:'إيجابي',lblNeg:'سلبي',lblNeu:'محايد',lblAnalysis:'التحليل',lblKeywords:'الكلمات المفتاحية',lblBusiness:'الاستخدام التجاري',historyTitle:'سجل التحليلات',footerBuilt:'مبني بـ',footerSub:'مشروع NLP',errEmpty:'أدخل نصاً للتحليل',errFail:'خطأ في السيرفر.',responseLang:'Arabic',
+    examples:[{text:'المنتج ممتاز والتوصيل سريع!',label:'إيجابي',type:'positive'},{text:'خدمة سيئة لم تحل مشكلتي!',label:'سلبي',type:'negative'},{text:'The product is okay.',label:'محايد EN',type:'neutral'},{text:'بعض الجوانب جيدة وأخرى سيئة',label:'مختلط',type:'mixed'}]},
+  en:{dir:'ltr',lang:'en',badge:'NLP · SENTIMENT ANALYSIS',h1plain:'Sentiment ',h1grad:'Analyzer',subtitle:'Analyze text sentiment in 20+ languages using AI',lblModel:'AI Model',lblTextLang:'Text language',lblInputText:'Text to analyze',lblExamples:'Quick examples',placeholder:'Type or paste your text here…',btnText:'Analyze Sentiment',loadingText:'Analyzing…',lblResult:'Analysis Result',lblPos:'Positive',lblNeg:'Negative',lblNeu:'Neutral',lblAnalysis:'DETAILED ANALYSIS',lblKeywords:'KEYWORDS',lblBusiness:'BUSINESS INSIGHT',historyTitle:'ANALYSIS HISTORY',footerBuilt:'Built with',footerSub:'NLP Project',errEmpty:'Please enter text to analyze.',errFail:'Server error. Make sure Flask is running.',responseLang:'English',
+    examples:[{text:'Amazing product, fast delivery!',label:'Positive',type:'positive'},{text:'Terrible service, problem not solved!',label:'Negative',type:'negative'},{text:'The product is okay, nothing special.',label:'Neutral',type:'neutral'},{text:'Good quality but too expensive.',label:'Mixed',type:'mixed'}]},
+  fr:{dir:'ltr',lang:'fr',badge:'NLP · ANALYSE DE SENTIMENT',h1plain:'Analyseur de ',h1grad:'Sentiments',subtitle:"Analysez le sentiment de n'importe quel texte en 20+ langues",lblModel:'Modèle NLP',lblTextLang:'Langue du texte',lblInputText:'Texte à analyser',lblExamples:'Exemples rapides',placeholder:'Saisissez ou collez votre texte ici…',btnText:'Analyser le sentiment',loadingText:'Analyse en cours…',lblResult:"Résultat de l'analyse",lblPos:'Positif',lblNeg:'Négatif',lblNeu:'Neutre',lblAnalysis:'ANALYSE DÉTAILLÉE',lblKeywords:'MOTS-CLÉS',lblBusiness:'USAGE COMMERCIAL',historyTitle:'HISTORIQUE DES ANALYSES',footerBuilt:'Développé avec',footerSub:'Projet NLP',errEmpty:'Veuillez saisir un texte.',errFail:'Erreur serveur. Vérifiez que Flask est en cours d\'exécution.',responseLang:'French',
+    examples:[{text:'Produit excellent, livraison rapide !',label:'Positif',type:'positive'},{text:'Service horrible, problème non résolu !',label:'Négatif',type:'negative'},{text:'The product is okay.',label:'Neutre EN',type:'neutral'},{text:'Certains aspects bons, autres mauvais.',label:'Mixte',type:'mixed'}]},
+  es:{dir:'ltr',lang:'es',badge:'NLP · ANÁLISIS DE SENTIMIENTO',h1plain:'Analizador de ',h1grad:'Sentimientos',subtitle:'Analiza el sentimiento de cualquier texto en 20+ idiomas',lblModel:'Modelo NLP',lblTextLang:'Idioma del texto',lblInputText:'Texto a analizar',lblExamples:'Ejemplos',placeholder:'Escribe tu texto aquí…',btnText:'Analizar sentimiento',loadingText:'Analizando…',lblResult:'Resultado',lblPos:'Positivo',lblNeg:'Negativo',lblNeu:'Neutral',lblAnalysis:'ANÁLISIS',lblKeywords:'PALABRAS CLAVE',lblBusiness:'USO COMERCIAL',historyTitle:'HISTORIAL',footerBuilt:'Creado con',footerSub:'Proyecto NLP',errEmpty:'Ingresa un texto.',errFail:'Error del servidor.',responseLang:'Spanish',
+    examples:[{text:'¡Producto excelente, entrega rápida!',label:'Positivo',type:'positive'},{text:'Servicio horrible.',label:'Negativo',type:'negative'},{text:'The product is okay.',label:'Neutro EN',type:'neutral'},{text:'Algunos aspectos buenos, otros malos.',label:'Mixto',type:'mixed'}]},
+  de:{dir:'ltr',lang:'de',badge:'NLP · STIMMUNGSANALYSE',h1plain:'Sentiment-',h1grad:'Analysator',subtitle:'Analysiere Textstimmung in 20+ Sprachen mit KI',lblModel:'NLP-Modell',lblTextLang:'Textsprache',lblInputText:'Zu analysierender Text',lblExamples:'Beispiele',placeholder:'Text hier eingeben…',btnText:'Stimmung analysieren',loadingText:'Analysiere…',lblResult:'Ergebnis',lblPos:'Positiv',lblNeg:'Negativ',lblNeu:'Neutral',lblAnalysis:'ANALYSE',lblKeywords:'SCHLÜSSELWÖRTER',lblBusiness:'GESCHÄFTLICHER NUTZEN',historyTitle:'VERLAUF',footerBuilt:'Erstellt mit',footerSub:'NLP-Projekt',errEmpty:'Bitte Text eingeben.',errFail:'Serverfehler.',responseLang:'German',
+    examples:[{text:'Tolles Produkt, schnelle Lieferung!',label:'Positiv',type:'positive'},{text:'Schrecklicher Service.',label:'Negativ',type:'negative'},{text:'Das Produkt ist in Ordnung.',label:'Neutral',type:'neutral'},{text:'Einige Aspekte gut, andere schlecht.',label:'Gemischt',type:'mixed'}]},
+  it:{dir:'ltr',lang:'it',badge:'NLP · ANALISI DEL SENTIMENT',h1plain:'Analizzatore di ',h1grad:'Sentimenti',subtitle:"Analizza il sentiment di qualsiasi testo in 20+ lingue",lblModel:'Modello NLP',lblTextLang:'Lingua del testo',lblInputText:'Testo da analizzare',lblExamples:'Esempi',placeholder:'Scrivi il tuo testo qui…',btnText:'Analizza il sentiment',loadingText:'Analisi in corso…',lblResult:"Risultato",lblPos:'Positivo',lblNeg:'Negativo',lblNeu:'Neutro',lblAnalysis:'ANALISI',lblKeywords:'PAROLE CHIAVE',lblBusiness:'USO COMMERCIALE',historyTitle:'CRONOLOGIA',footerBuilt:'Sviluppato con',footerSub:'Progetto NLP',errEmpty:'Inserisci un testo.',errFail:'Errore server.',responseLang:'Italian',
+    examples:[{text:'Prodotto eccellente!',label:'Positivo',type:'positive'},{text:'Servizio orribile.',label:'Negativo',type:'negative'},{text:'The product is okay.',label:'Neutro EN',type:'neutral'},{text:'Alcuni aspetti buoni, altri cattivi.',label:'Misto',type:'mixed'}]},
+  pt:{dir:'ltr',lang:'pt',badge:'NLP · ANÁLISE DE SENTIMENTO',h1plain:'Analisador de ',h1grad:'Sentimentos',subtitle:'Analise o sentimento de qualquer texto em 20+ idiomas',lblModel:'Modelo NLP',lblTextLang:'Idioma do texto',lblInputText:'Texto a analisar',lblExamples:'Exemplos',placeholder:'Digite seu texto aqui…',btnText:'Analisar sentimento',loadingText:'Analisando…',lblResult:'Resultado',lblPos:'Positivo',lblNeg:'Negativo',lblNeu:'Neutro',lblAnalysis:'ANÁLISE',lblKeywords:'PALAVRAS-CHAVE',lblBusiness:'USO COMERCIAL',historyTitle:'HISTÓRICO',footerBuilt:'Desenvolvido com',footerSub:'Projeto NLP',errEmpty:'Insira um texto.',errFail:'Erro no servidor.',responseLang:'Portuguese',
+    examples:[{text:'Produto excelente!',label:'Positivo',type:'positive'},{text:'Serviço horrível.',label:'Negativo',type:'negative'},{text:'The product is okay.',label:'Neutro EN',type:'neutral'},{text:'Alguns aspectos bons, outros ruins.',label:'Misto',type:'mixed'}]},
+  ru:{dir:'ltr',lang:'ru',badge:'NLP · АНАЛИЗ ТОНАЛЬНОСТИ',h1plain:'Анализатор ',h1grad:'настроений',subtitle:'Анализируйте тональность текста на 20+ языках',lblModel:'Модель NLP',lblTextLang:'Язык текста',lblInputText:'Текст для анализа',lblExamples:'Примеры',placeholder:'Введите текст здесь…',btnText:'Анализировать',loadingText:'Анализируем…',lblResult:'Результат',lblPos:'Позитивный',lblNeg:'Негативный',lblNeu:'Нейтральный',lblAnalysis:'АНАЛИЗ',lblKeywords:'КЛЮЧЕВЫЕ СЛОВА',lblBusiness:'КОММЕРЧЕСКОЕ ИСПОЛЬЗОВАНИЕ',historyTitle:'ИСТОРИЯ',footerBuilt:'Разработано с',footerSub:'NLP Проект',errEmpty:'Введите текст.',errFail:'Ошибка сервера.',responseLang:'Russian',
+    examples:[{text:'Отличный продукт!',label:'Позитивный',type:'positive'},{text:'Ужасный сервис.',label:'Негативный',type:'negative'},{text:'The product is okay.',label:'Нейтральный',type:'neutral'},{text:'Некоторые аспекты хороши, другие плохи.',label:'Смешанный',type:'mixed'}]},
+  zh:{dir:'ltr',lang:'zh',badge:'NLP · 情感分析',h1plain:'情感',h1grad:'分析器',subtitle:'使用AI分析20+语言的文本情感',lblModel:'NLP模型',lblTextLang:'文本语言',lblInputText:'待分析文本',lblExamples:'快速示例',placeholder:'在此输入文本…',btnText:'分析情感',loadingText:'分析中…',lblResult:'分析结果',lblPos:'积极',lblNeg:'消极',lblNeu:'中性',lblAnalysis:'详细分析',lblKeywords:'关键词',lblBusiness:'商业洞察',historyTitle:'分析历史',footerBuilt:'基于',footerSub:'NLP项目',errEmpty:'请输入文本。',errFail:'服务器错误。',responseLang:'Chinese',
+    examples:[{text:'产品非常好，发货快！',label:'积极',type:'positive'},{text:'服务很差。',label:'消极',type:'negative'},{text:'The product is okay.',label:'中性 EN',type:'neutral'},{text:'一些方面好，一些方面差。',label:'混合',type:'mixed'}]},
+  ja:{dir:'ltr',lang:'ja',badge:'NLP · 感情分析',h1plain:'感情',h1grad:'アナライザー',subtitle:'AIを使用して20以上の言語のテキストの感情を分析',lblModel:'NLPモデル',lblTextLang:'テキストの言語',lblInputText:'分析するテキスト',lblExamples:'例',placeholder:'ここにテキストを入力…',btnText:'感情を分析',loadingText:'分析中…',lblResult:'分析結果',lblPos:'ポジティブ',lblNeg:'ネガティブ',lblNeu:'ニュートラル',lblAnalysis:'詳細分析',lblKeywords:'キーワード',lblBusiness:'ビジネス活用',historyTitle:'分析履歴',footerBuilt:'構築',footerSub:'NLPプロジェクト',errEmpty:'テキストを入力してください。',errFail:'サーバーエラー。',responseLang:'Japanese',
+    examples:[{text:'素晴らしい製品！',label:'ポジティブ',type:'positive'},{text:'ひどいサービス。',label:'ネガティブ',type:'negative'},{text:'The product is okay.',label:'ニュートラル',type:'neutral'},{text:'良い点と悪い点がある。',label:'混合',type:'mixed'}]},
+  tr:{dir:'ltr',lang:'tr',badge:'NLP · DUYGU ANALİZİ',h1plain:'Duygu ',h1grad:'Analizörü',subtitle:'20+ dilde herhangi bir metnin duygusunu analiz edin',lblModel:'NLP Modeli',lblTextLang:'Metin dili',lblInputText:'Analiz edilecek metin',lblExamples:'Örnekler',placeholder:'Metninizi buraya girin…',btnText:'Duygu analizi yap',loadingText:'Analiz ediliyor…',lblResult:'Sonuç',lblPos:'Pozitif',lblNeg:'Negatif',lblNeu:'Nötr',lblAnalysis:'ANALİZ',lblKeywords:'ANAHTAR KELİMELER',lblBusiness:'TİCARİ KULLANIM',historyTitle:'GEÇMİŞ',footerBuilt:'ile geliştirildi',footerSub:'NLP Projesi',errEmpty:'Lütfen metin girin.',errFail:'Sunucu hatası.',responseLang:'Turkish',
+    examples:[{text:'Harika ürün!',label:'Pozitif',type:'positive'},{text:'Korkunç hizmet.',label:'Negatif',type:'negative'},{text:'The product is okay.',label:'Nötr EN',type:'neutral'},{text:'Bazı yönler iyi, bazıları kötü.',label:'Karışık',type:'mixed'}]},
+};
 
-function setUiLang(lang,btn){
-  currentUiLang=lang;const t=UI[lang];
-  document.documentElement.lang=t.lang;document.documentElement.dir=t.dir;
-  document.querySelectorAll('#uiLangBar button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
-  document.getElementById('badge').textContent=t.badge;
-  document.getElementById('mainTitle').childNodes[0].nodeValue=t.title+' ';
-  document.getElementById('titleSpan').textContent=t.titleSpan;
-  document.getElementById('subtitle').textContent=t.subtitle;
-  document.getElementById('inputText').placeholder=t.placeholder;
-  document.getElementById('btnText').textContent=t.btnText;
-  document.getElementById('loadingText').textContent=t.loadingText;
-  document.getElementById('lblPos').textContent=t.lblPos;document.getElementById('lblNeg').textContent=t.lblNeg;document.getElementById('lblNeu').textContent=t.lblNeu;
-  document.getElementById('lblAnalysis').textContent=t.lblAnalysis;document.getElementById('lblKeywords').textContent=t.lblKeywords;document.getElementById('lblBusiness').textContent=t.lblBusiness;
-  document.getElementById('historyTitle').textContent=t.historyTitle;document.getElementById('footerBuilt').textContent=t.footerBuilt;document.getElementById('footerSub').textContent=t.footerSub;
-  ['lblTextLang','lblInputText','lblExamples','lblResult'].forEach(id=>{
-    const labels={lblTextLang:t.lblTextLang,lblInputText:t.lblInputText,lblExamples:t.lblExamples,lblResult:t.lblResult};
-    document.getElementById(id).innerHTML=`<span style="width:6px;height:6px;background:var(--accent);border-radius:50%;display:inline-block"></span> ${labels[id]}`;
-  });
+// ── STATE ──
+let currentUiLang = 'fr';
+let selectedTextLang = 'auto';
+let selectedModel = 'multi';
+const analysisHistory = [];
+
+// ── CHAR COUNT ──
+function updateCharCount(el) {
+  document.getElementById('charCount').textContent = `${el.value.length} / 512`;
+}
+
+// ── MODEL SELECTOR ──
+function setModel(model, btn) {
+  selectedModel = model;
+  document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── TEXT LANG ──
+function setTextLang(lang, btn) {
+  selectedTextLang = lang;
+  document.querySelectorAll('.tlang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── UI LANGUAGE SWITCH ──
+function setUiLang(lang, btn) {
+  currentUiLang = lang;
+  const t = UI[lang] || UI['fr'];
+  document.documentElement.lang = t.lang;
+  document.documentElement.dir = t.dir;
+  document.querySelectorAll('#uiLangBar button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  document.getElementById('badge').textContent    = t.badge;
+  document.getElementById('h1plain').textContent  = t.h1plain;
+  document.getElementById('h1grad').textContent   = t.h1grad;
+  document.getElementById('subtitle').lastChild.nodeValue = ' ' + t.subtitle;
+  document.getElementById('inputText').placeholder = t.placeholder;
+  document.getElementById('btnText').textContent   = t.btnText;
+  document.getElementById('loadingText').textContent = t.loadingText;
+  document.getElementById('footerBuilt').textContent = t.footerBuilt;
+  document.getElementById('footerSub').textContent   = t.footerSub;
+
+  // Section labels
+  setSectionLabel('lblModel',     t.lblModel);
+  setSectionLabel('lblTextLang',  t.lblTextLang);
+  setSectionLabel('lblInputText', t.lblInputText);
+  setSectionLabel('lblExamples',  t.lblExamples);
+  setSectionLabel('lblResult',    t.lblResult);
+
+  // Score labels
+  document.getElementById('lblPos').innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/></svg> ${t.lblPos}`;
+  document.getElementById('lblNeg').innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/></svg> ${t.lblNeg}`;
+  document.getElementById('lblNeu').innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/></svg> ${t.lblNeu}`;
+  document.getElementById('lblAnalysis').innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> ${t.lblAnalysis}`;
+  document.getElementById('lblKeywords').innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> ${t.lblKeywords}`;
+  document.getElementById('lblBusiness').innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> ${t.lblBusiness}`;
+  document.getElementById('historyTitle').innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg> ${t.historyTitle}`;
+
   renderExamples();
 }
 
-function renderExamples(){
-  const c=document.getElementById('examplesContainer');c.innerHTML='';
-  UI[currentUiLang].examples.forEach(ex=>{const s=document.createElement('span');s.className='example-chip';s.textContent=ex.label;s.onclick=()=>{document.getElementById('inputText').value=ex.text;};c.appendChild(s);});
+function setSectionLabel(id, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = `<span style="width:5px;height:5px;background:var(--accent);border-radius:50%;box-shadow:0 0 6px var(--accent);flex-shrink:0;display:inline-block"></span> ${text}`;
 }
 
-function setTextLang(lang,btn){selectedTextLang=lang;document.querySelectorAll('.tlang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
-
-async function analyze(){
-  const t=UI[currentUiLang];
-  const text=document.getElementById('inputText').value.trim();
-  if(!text){showError(t.errEmpty);return;}
-  const btn=document.getElementById('analyzeBtn');const loader=document.getElementById('loader');
-  btn.disabled=true;loader.classList.add('active');
-  document.getElementById('resultCard').classList.remove('visible');document.getElementById('errorMsg').classList.remove('visible');
-  try{
-    // 🔑 الطلب يذهب إلى Backend (Flask) - المفتاح آمن على السيرفر
-    const res=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text,text_lang:selectedTextLang,response_lang:t.responseLang})});
-    const result=await res.json();
-    if(!res.ok)throw new Error(result.error||'Server error');
-    displayResult(result,text);addToHistory(result,text);
-  }catch(err){showError(t.errFail+' ('+err.message+')');}
-  finally{btn.disabled=false;loader.classList.remove('active');}
+// ── EXAMPLES ──
+function renderExamples() {
+  const c = document.getElementById('examplesContainer');
+  c.innerHTML = '';
+  const t = UI[currentUiLang] || UI['fr'];
+  t.examples.forEach(ex => {
+    const s = document.createElement('span');
+    s.className = 'example-chip';
+    s.innerHTML = `${ICONS_SM[ex.type] || ICONS_SM.neutral} ${ex.label}`;
+    s.onclick = () => {
+      document.getElementById('inputText').value = ex.text;
+      updateCharCount(document.getElementById('inputText'));
+    };
+    c.appendChild(s);
+  });
 }
 
-function displayResult(r,text){
-  document.getElementById('resEmoji').textContent=r.emoji;
-  document.getElementById('resLabel').textContent=r.label;document.getElementById('resLabel').className=`sentiment-label ${r.sentiment}`;
-  document.getElementById('resSub').textContent=(r.detected_lang?`🌐 ${r.detected_lang}  ·  `:'')+r.sub;
-  document.getElementById('resAnalysis').textContent=r.analysis;document.getElementById('resBusiness').textContent=r.business;
-  setTimeout(()=>{
-    document.getElementById('posBar').style.width=r.scores.positive+'%';document.getElementById('negBar').style.width=r.scores.negative+'%';document.getElementById('neuBar').style.width=r.scores.neutral+'%';
-    document.getElementById('posVal').textContent=r.scores.positive+'%';document.getElementById('negVal').textContent=r.scores.negative+'%';document.getElementById('neuVal').textContent=r.scores.neutral+'%';
-  },80);
-  const kw=document.getElementById('resKeywords');kw.innerHTML='';
-  (r.keywords||[]).forEach(k=>{const s=document.createElement('span');s.className=`keyword ${k.type}`;s.textContent=k.word;kw.appendChild(s);});
+// ── CONFIDENCE RING ──
+function updateConfidence(score) {
+  const circumference = 163.4;
+  const offset = circumference - (score / 100) * circumference;
+  const fill = document.getElementById('confFill');
+  fill.style.strokeDashoffset = circumference; // reset
+  setTimeout(() => {
+    fill.style.strokeDashoffset = offset;
+    const colors = { high: 'var(--pos)', med: 'var(--neu)', low: 'var(--neg)' };
+    fill.style.stroke = score >= 70 ? colors.high : score >= 45 ? colors.med : colors.low;
+  }, 80);
+  document.getElementById('confVal').textContent = score + '%';
+}
+
+// ── ANALYZE ──
+async function analyze() {
+  const t = UI[currentUiLang] || UI['fr'];
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) { showError(t.errEmpty); return; }
+
+  const btn    = document.getElementById('analyzeBtn');
+  const loader = document.getElementById('loader');
+  btn.disabled = true;
+  loader.classList.add('active');
+  document.getElementById('resultCard').classList.remove('visible');
+  document.getElementById('errorMsg').classList.remove('visible');
+
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text,
+        text_lang: selectedTextLang,
+        response_lang: t.responseLang,
+        model: selectedModel
+      })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Server error');
+    displayResult(result, text);
+    addToHistory(result, text);
+  } catch(err) {
+    showError(t.errFail + ' (' + err.message + ')');
+  } finally {
+    btn.disabled = false;
+    loader.classList.remove('active');
+  }
+}
+
+// ── DISPLAY RESULT ──
+function displayResult(r, text) {
+  const sentiment = r.sentiment || 'neutral';
+
+  // Icon
+  const icon = document.getElementById('resIcon');
+  icon.className = `sentiment-icon ${sentiment}`;
+  icon.innerHTML = ICONS[sentiment] || ICONS.neutral;
+
+  // Label + sub
+  document.getElementById('resLabel').textContent = r.label || sentiment;
+  document.getElementById('resLabel').className   = `sentiment-label ${sentiment}`;
+  const sub = document.getElementById('resSub');
+  sub.innerHTML = (r.detected_lang
+    ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> ${r.detected_lang} &nbsp;·&nbsp; `
+    : '') + (r.sub || '');
+
+  // Model used badge
+  document.getElementById('modelUsedText').textContent = r.model_used || selectedModel;
+
+  // Confidence ring
+  const topScore = Math.max(r.scores?.positive || 0, r.scores?.negative || 0, r.scores?.neutral || 0);
+  updateConfidence(topScore);
+
+  // Bars
+  setTimeout(() => {
+    ['pos','neg','neu'].forEach(k => {
+      const key = k === 'pos' ? 'positive' : k === 'neg' ? 'negative' : 'neutral';
+      const val = r.scores?.[key] ?? 0;
+      document.getElementById(k + 'Bar').style.width = val + '%';
+      document.getElementById(k + 'Val').textContent = val + '%';
+    });
+  }, 80);
+
+  // Analysis + Business
+  document.getElementById('resAnalysis').textContent = r.analysis || '—';
+  document.getElementById('resBusiness').textContent = r.business  || '—';
+
+  // Keywords
+  const kw = document.getElementById('resKeywords');
+  kw.innerHTML = '';
+  if (r.keywords && r.keywords.length) {
+    r.keywords.forEach(k => {
+      const s = document.createElement('span');
+      s.className = `keyword ${k.type}`;
+      s.textContent = k.word;
+      kw.appendChild(s);
+    });
+  } else {
+    kw.innerHTML = '<span style="color:var(--text-dim);font-size:12px;font-style:italic">Aucun mot-clé extrait par ce modèle</span>';
+  }
+
   document.getElementById('resultCard').classList.add('visible');
 }
 
-function addToHistory(r,text){
-  analysisHistory.unshift({result:r,text});if(analysisHistory.length>6)analysisHistory.pop();
-  document.getElementById('historySection').style.display='block';
-  const list=document.getElementById('historyList');list.innerHTML='';
-  analysisHistory.forEach(item=>{const div=document.createElement('div');div.className='history-item';div.innerHTML=`<span class="history-emoji">${item.result.emoji}</span><span class="history-text">${item.text}</span><span class="history-sentiment ${item.result.sentiment}">${item.result.label}</span>`;div.onclick=()=>{document.getElementById('inputText').value=item.text;displayResult(item.result,item.text);};list.appendChild(div);});
+// ── HISTORY ──
+function addToHistory(r, text) {
+  analysisHistory.unshift({ result: r, text });
+  if (analysisHistory.length > 6) analysisHistory.pop();
+  document.getElementById('historySection').style.display = 'block';
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+  analysisHistory.forEach(item => {
+    const sentiment = item.result.sentiment || 'neutral';
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.innerHTML = `
+      <div class="history-icon ${sentiment}">${ICONS_SM[sentiment] || ICONS_SM.neutral}</div>
+      <span class="history-text">${item.text}</span>
+      <span class="history-badge ${sentiment}">${item.result.label || sentiment}</span>
+    `;
+    div.onclick = () => {
+      document.getElementById('inputText').value = item.text;
+      updateCharCount(document.getElementById('inputText'));
+      displayResult(item.result, item.text);
+    };
+    list.appendChild(div);
+  });
 }
 
-function showError(msg){const el=document.getElementById('errorMsg');el.textContent=msg;el.classList.add('visible');}
+// ── ERROR ──
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  document.getElementById('errorText').textContent = msg;
+  el.classList.add('visible');
+}
+
+// ── INIT ──
 renderExamples();
-document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter')analyze();});
+document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') analyze(); });
 </script>
 </body>
 </html>
-
